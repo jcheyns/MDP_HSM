@@ -1,4 +1,4 @@
-__precompile__()
+#__precompile__()
 module MDP_HSM
 using DataFrames
 using JuMP
@@ -26,15 +26,16 @@ function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrder
 
     write(logFile,"Reading $path $flowFile\r\n")
     dfFlows=CSV.read(joinpath(path,flowFile))
+            
     write(logFile, "Reading $path $paramFile\r\n")
     dfParams=CSV.read(joinpath(path,paramFile))
+    write(logFile, "Creating param Dict\r\n")
     params=@from rds in dfParams begin
         @select get(rds.Key)=>get(rds.Value)
         @collect Dict
     end
+            
     write(logFile, "Reading $path $orderFile\r\n")
-
-
     dfOrders=CSV.read(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing}),dateformat=dateFrmt)
     #showall(dfOrders)
 
