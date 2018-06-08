@@ -73,10 +73,11 @@ function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrder
 end
 
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
-#write(aMDPModel.logFile,"Building Model\r\n")
+write(aMDPModel.logFile,"Building Model\r\n")
 m=Model(solver=CbcSolver(logLevel=1))
 nOrders=size(aMDPModel.dfOrders,1)
-
+write(aMDPModel.logFile,"Model has $nOrders Orders\r\n")
+            
 @variable(m,VolInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 @variable(m,VolOuterBayInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 
