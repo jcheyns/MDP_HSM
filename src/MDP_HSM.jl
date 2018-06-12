@@ -1,4 +1,4 @@
-#__precompile__()
+__precompile__()
 module MDP_HSM
 using DataFrames
 using JuMP
@@ -18,23 +18,30 @@ struct MDP_HSM_Model
     params::Dict
 end
 
-function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrders.csv", roundFile::AbstractString="HSMRounds.csv",flowFile::AbstractString="HSMFlows.csv",paramFile::AbstractString="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
-    logFile=open(joinpath(path, "Logging.txt"),"w")
+CSV2DF(path::AbstractString)= CSV.read(path)
 
-    write(logFile, "Reading $path $roundFile\r\n")
-    dfRounds=CSV.read(joinpath(path,roundFile))
-
-    write(logFile,"Reading $path $flowFile\r\n")
-    dfFlows=CSV.read(joinpath(path,flowFile))
-            
-    write(logFile, "Reading $path $paramFile\r\n")
-    dfParams=CSV.read(joinpath(path,paramFile))
-    write(logFile, "Creating param Dict\r\n")
+function df2ParamDict(dfParams::DataFrame)
     params=@from rds in dfParams begin
         @select get(rds.Key)=>get(rds.Value)
         @collect Dict
     end
-            
+    return params
+end
+
+function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrders.csv", roundFile::AbstractString="HSMRounds.csv",flowFile::AbstractString="HSMFlows.csv",paramFile::AbstractString="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
+    logFile=open(joinpath(path, "Logging.txt"),"w")
+
+    write(logFile, "Reading $path $roundFile\r\n")
+    dfRounds=CSV2DF(joinpath(path,roundFile))
+
+    write(logFile,"Reading $path $flowFile\r\n")
+    dfFlows=CSV2DF(joinpath(path,flowFile))
+
+    write(logFile, "Reading $path $paramFile\r\n")
+    dfParams=CSV2DF(joinpath(path,paramFile))
+
+    params=df2ParamDict(dfParams)
+
     write(logFile, "Reading $path $orderFile\r\n")
     dfOrders=CSV.read(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing}),dateformat=dateFrmt)
     #showall(dfOrders)
@@ -47,19 +54,13 @@ function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrder
     dfOrders[:FlowList] = map( (x) -> split(x,"#"),dfOrders[:Flows])
     dfOrders[:RoundList]= map( (x) -> ismissing(x)?"": split(replace(x,"IF_BH","IF"),"#"),dfOrders[:Round_Type])
 
-    if (!(:Volume in names(dfOrders)) && ( :Slab_Weight in names(dfOrders)))
+    if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
     end
 
-    #remove trials
+    #remove trials and invalid ROUND_ID
     dfOrders=@from ord in dfOrders begin
-        @where ord.Customer_Name != "AM/NS Calvert Quality Internal Trials"
-        @select ord
-        @collect DataFrame
-    end
-    #remove ROUND_ID
-    dfOrders=@from ord in dfOrders begin
-        @where !(ord.Round_ID in( "NOK_Width" ,"NOK_MES Unavailable","NOK_No Location","NOK_River Terminal"))
+        @where (ord.Customer_Name != "AM/NS Calvert Quality Internal Trials") && (!(ord.Round_ID in( "NOK_Width" ,"NOK_MES Unavailable","NOK_No Location","NOK_River Terminal")))
         @select ord
         @collect DataFrame
     end
@@ -72,12 +73,16 @@ function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrder
     return res
 end
 
+#precomp hint
+CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv"))
+# not working...
+# MDP_HSM_Model(joinpath(@__DIR__,"../data"))
+
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
-write(aMDPModel.logFile,"Building Model\r\n")
+#write(aMDPModel.logFile,"Building Model\r\n")
 m=Model(solver=CbcSolver(logLevel=1))
 nOrders=size(aMDPModel.dfOrders,1)
-write(aMDPModel.logFile,"Model has $nOrders Orders\r\n")
-            
+
 @variable(m,VolInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 @variable(m,VolOuterBayInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 

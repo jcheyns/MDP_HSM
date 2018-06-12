@@ -1,0 +1,14 @@
+RoundName,MinVolumePerRound,MaxVolumePerRound,MinOccurence,MaxOccurence,OuterbayVolume
+IF,6000,7000,0,7,0
+IF Exposed,6000,7000,0,7,0
+Heavy,6000,7000,0,7,0
+Light HSLA,4500,6000,0,7,0
+Intermediate HSLA,6000,7000,0,7,0
+Light Regular,3500,4500,0,7,0
+Intermediate Regular,6000,7000,0,7,0
+3CB,5500,6500,0,7,0
+LDO Austenitics,1500,2700,0,0,0
+Austenitic,1500,2700,0,0,0
+Ferritic,1500,2700,0,0,0
+Stabilized Ferritic,1500,2700,0,0,0
+TMR Stabilized Ferritic,1500,2700,0,0,0
