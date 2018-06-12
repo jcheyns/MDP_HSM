@@ -9,7 +9,7 @@ using CSV
 export MDP_HSM_Model,RunModel
 
 struct MDP_HSM_Model
-    workFolder::AbstractString
+    workFolder::String
     logFile::IOStream
     dateFrmt::DateFormat
     dfOrders::DataFrame
@@ -20,6 +20,7 @@ end
 
 CSV2DF(path::AbstractString)= CSV.read(path)
 
+#would be great to precomplie this one ...
 function df2ParamDict(dfParams::DataFrame)
     params=@from rds in dfParams begin
         @select get(rds.Key)=>get(rds.Value)
@@ -27,8 +28,10 @@ function df2ParamDict(dfParams::DataFrame)
     end
     return params
 end
+toList(x)=split(x,"#")
 
-function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrders.csv", roundFile::AbstractString="HSMRounds.csv",flowFile::AbstractString="HSMFlows.csv",paramFile::AbstractString="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
+#function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrders.csv", roundFile::AbstractString="HSMRounds.csv",flowFile::AbstractString="HSMFlows.csv",paramFile::AbstractString="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
+function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFile::String="HSMRounds.csv",flowFile::String="HSMFlows.csv",paramFile::String="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
     logFile=open(joinpath(path, "Logging.txt"),"w")
 
     write(logFile, "Reading $path $roundFile\r\n")
@@ -46,18 +49,6 @@ function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrder
     dfOrders=CSV.read(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing}),dateformat=dateFrmt)
     #showall(dfOrders)
 
-    if (!(:Flows in names(dfOrders)) && (:Flow in names(dfOrders)))
-        write(logFile,"Using <Flow> for <Flows>\r\n")
-        rename!(dfOrders,(:Flow=>:Flows))
-    end
-
-    dfOrders[:FlowList] = map( (x) -> split(x,"#"),dfOrders[:Flows])
-    dfOrders[:RoundList]= map( (x) -> ismissing(x)?"": split(replace(x,"IF_BH","IF"),"#"),dfOrders[:Round_Type])
-
-    if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
-        dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
-    end
-
     #remove trials and invalid ROUND_ID
     dfOrders=@from ord in dfOrders begin
         @where (ord.Customer_Name != "AM/NS Calvert Quality Internal Trials") && (!(ord.Round_ID in( "NOK_Width" ,"NOK_MES Unavailable","NOK_No Location","NOK_River Terminal")))
@@ -65,18 +56,33 @@ function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrder
         @collect DataFrame
     end
 
+    if (!(:Flows in names(dfOrders)) && (:Flow in names(dfOrders)))
+        write(logFile,"Using <Flow> for <Flows>\r\n")
+        rename!(dfOrders,(:Flow=>:Flows))
+    end
+
+    dfOrders[:FlowList] = map( (x) -> toList(x),dfOrders[:Flows])
+    dfOrders[:RoundList]= map( (x) -> ismissing(x)?"": toList(replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
+
+    if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
+        dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
+    end
+
     #println(eltypes(dfOrders))
     #showall(dfOrders)
 
     res= MDP_HSM_Model(path,logFile,dateFrmt,dfOrders,dfRounds,dfFlows,params)
-    write(logFile,"Model created","\r\n")
+    write(logFile,"Model created\r\n")
     return res
 end
 
 #precomp hint
+
 CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv"))
-# not working...
-# MDP_HSM_Model(joinpath(@__DIR__,"../data"))
+#no gain
+#toList("GI")
+# not working... [1] query(::DataFrames.DataFrame) at C:\Users\10500508\.julia\v0.6\QueryOperators\src\source_iterable.jl:
+#df2ParamDict(CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv")))
 
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
 #write(aMDPModel.logFile,"Building Model\r\n")
