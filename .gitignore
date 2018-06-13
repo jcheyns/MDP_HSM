@@ -1,3 +1,6 @@
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
+data/Result.csv
+data/HSMFlows_Result.csv
+data/HSMOrders_Result.csv
