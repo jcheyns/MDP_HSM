@@ -51,7 +51,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
 
     #remove trials and invalid ROUND_ID
     dfOrders=@from ord in dfOrders begin
-        @where (ord.Customer_Name != "AM/NS Calvert Quality Internal Trials") && (!(ord.Round_ID in( "NOK_Width" ,"NOK_MES Unavailable","NOK_No Location","NOK_River Terminal")))
+        @where (ord.Customer_Name != "AM/NS Calvert Quality Internal Trials") && (!(ord.Round_ID in("NOK_Width" ,"NOK_MES Unavailable","NOK_No Location","NOK_River Terminal")))
         @select ord
         @collect DataFrame
     end
@@ -262,7 +262,6 @@ if ModelStatus==:Optimal
     close(roundResult)
     #write Orders
     orderResult=open(joinpath(aMDPModel.workFolder,"HSMOrders_Result.csv"),"w")
-    vol=0
     for i=1:nOrders
         vol=0
         for r in aMDPModel.dfOrders[i,:RoundList]
