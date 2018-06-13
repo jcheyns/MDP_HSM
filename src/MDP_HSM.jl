@@ -15,7 +15,7 @@ struct MDP_HSM_Model
     dfOrders::DataFrame
     dfRounds::DataFrame# for each round min max volume + min max occurence
     dfFlows::DataFrame# for each flow min max volume
-    params::Dict
+    params::Dict{String,String}
 end
 
 CSV2DF(path::AbstractString)= CSV.read(path)
@@ -26,7 +26,7 @@ function df2ParamDict(dfParams::DataFrame)
         @select get(rds.Key)=>get(rds.Value)
         @collect Dict
     end
-    return params
+    return params::Dict{String,String}
 end
 toList(x)=split(x,"#")
 
@@ -84,7 +84,8 @@ CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv"))
 # not working... [1] query(::DataFrames.DataFrame) at C:\Users\10500508\.julia\v0.6\QueryOperators\src\source_iterable.jl:
 #df2ParamDict(CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv")))
 
-function orderInFlow(orderFlow, flow::AbstractString)
+function orderInFlow(orderFlow::Array, flow::AbstractString)
+#println(typeof(orderFlow))
 if in(flow, orderFlow)
     return 1
 end
@@ -94,12 +95,14 @@ if length(flowSum)==1
 end
 for f in flowSum
     if in(f, orderFlow)
-        println(orderFlow, " in ", f)
+        #println(orderFlow, " in ", f)
         return 1
     end
 end
 return 0
 end
+#orderInFlow("GI3","GI3+GI34")#precomp hint
+
 
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
 #write(aMDPModel.logFile,"Building Model\r\n")
@@ -279,5 +282,4 @@ close(result)
 
 return ModelStatus
 end
-
 end
