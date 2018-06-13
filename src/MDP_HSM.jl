@@ -68,7 +68,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
     end
 
-    println(eltypes(dfOrders))
+    #println(eltypes(dfOrders))
     #showall(dfOrders)
 
     res= MDP_HSM_Model(path,logFile,dateFrmt,dfOrders,dfRounds,dfFlows,params)
