@@ -68,7 +68,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
     end
 
-    #println(eltypes(dfOrders))
+    println(eltypes(dfOrders))
     #showall(dfOrders)
 
     res= MDP_HSM_Model(path,logFile,dateFrmt,dfOrders,dfRounds,dfFlows,params)
@@ -83,6 +83,23 @@ CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv"))
 #toList("GI")
 # not working... [1] query(::DataFrames.DataFrame) at C:\Users\10500508\.julia\v0.6\QueryOperators\src\source_iterable.jl:
 #df2ParamDict(CSV2DF(joinpath(@__DIR__,"../data/HSMParams.csv")))
+
+function orderInFlow(orderFlow, flow::AbstractString)
+if in(flow, orderFlow)
+    return 1
+end
+flowSum=split(flow,"+")# we have a case like GI_3+GI_34
+if length(flowSum)==1
+    return 0
+end
+for f in flowSum
+    if in(f, orderFlow)
+        println(orderFlow, " in ", f)
+        return 1
+    end
+end
+return 0
+end
 
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
 #write(aMDPModel.logFile,"Building Model\r\n")
@@ -171,7 +188,8 @@ for r in aMDPModel.dfRounds[:RoundName]
 end
 
 for f in aMDPModel.dfFlows[:FlowName]
-    @constraint(m,Flow[f]==sum(VolInRd[i,r]*in(f,aMDPModel.dfOrders[i,:FlowList]) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
+    #@constraint(m,Flow[f]==sum(VolInRd[i,r]*in(f,aMDPModel.dfOrders[i,:FlowList]) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
+    @constraint(m,Flow[f]==sum(VolInRd[i,r]* orderInFlow(aMDPModel.dfOrders[i,:FlowList],f) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
     @constraint(m,FlowShortage[f]>=minFlow[f]-Flow[f])
     @constraint(m,FlowExcess[f]>=Flow[f]-maxFlow[f])
 end
