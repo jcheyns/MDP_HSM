@@ -70,9 +70,9 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     end
 
     dfOrders[:FlowList] = map( (x) -> toList(x),dfOrders[:Flows])
-    dfOrders[:RoundList]= map( (x) -> toList(ismissing(x)?"???": replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
-    
-    dfOrders[:RoundList]= map( (x) -> ("IF" in(x))?push!(x,"IF_Exposed"):x ,dfOrders[:RoundList])
+    dfOrders[:RoundList]= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
+
+    dfOrders[:RoundList]= map( (x) -> ("IF" in(x)) ? push!(x,"IF_Exposed") : x ,dfOrders[:RoundList])
 
     if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
@@ -112,7 +112,6 @@ end
 return 0
 end
 #orderInFlow("GI3","GI3+GI34")#precomp hint
-
 
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
 #write(aMDPModel.logFile,"Building Model\r\n")
@@ -174,7 +173,7 @@ for i=1:nOrders
         if !haskey( minOcc,r)
             @constraint(m,VolInRd[i,r] ==0 )
         end
-        @constraint(m,VolOuterBayInRd[i,r]==(aMDPModel.dfOrders[i,:Yard_Location]  =="OuterBay"?VolInRd[i,r]:0))
+        @constraint(m,VolOuterBayInRd[i,r]==(aMDPModel.dfOrders[i,:Yard_Location]  =="OuterBay" ? VolInRd[i,r] : 0))
     end
     for f in aMDPModel.dfOrders[i,:FlowList]
         if !haskey(minFlow,f)
