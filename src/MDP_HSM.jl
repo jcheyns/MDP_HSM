@@ -71,7 +71,6 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
 
     dfOrders[:FlowList] = map( (x) -> toList(x),dfOrders[:Flows])
     dfOrders[:RoundList]= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
-
     dfOrders[:RoundList]= map( (x) -> ("IF" in(x)) ? push!(x,"IF_Exposed") : x ,dfOrders[:RoundList])
 
     if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
@@ -171,6 +170,7 @@ for i=1:nOrders
 #unknown flow/round
     for r in aMDPModel.dfOrders[i,:RoundList]
         if !haskey( minOcc,r)
+            println("Order $i has invalid round $r")
             @constraint(m,VolInRd[i,r] ==0 )
         end
         @constraint(m,VolOuterBayInRd[i,r]==(aMDPModel.dfOrders[i,:Yard_Location]  =="OuterBay" ? VolInRd[i,r] : 0))
@@ -242,7 +242,10 @@ end
 @objective(m,:Min,totalflowExcesscost+totalflowShortagecost+totalSelectionCost+totalOuterbayCost)
 write(aMDPModel.logFile,"Solving Model\r\n")
 
-#println(m)
+
+modelPrint=open(joinpath(aMDPModel.workFolder,"model.txt"),"w")
+
+println(modelPrint,m)
 ModelStatus=solve(m)
 write(aMDPModel.logFile,"Solved Model: $ModelStatus\r\n")
 result=open(joinpath(aMDPModel.workFolder,"Result.csv"),"w")
