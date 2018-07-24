@@ -40,6 +40,14 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     write(logFile,"Reading $path $flowFile\r\n")
     dfFlows=CSV2DF(joinpath(path,flowFile))
 
+    if(:Active in names(dfFlows))
+        dfFlows=@from fl in dfFlows begin
+        @where fl.Active==1
+        @select fl
+        @collect DataFrame
+        end
+    end
+
     write(logFile, "Reading $path $paramFile\r\n")
     dfParams=CSV2DF(joinpath(path,paramFile))
 
@@ -49,7 +57,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     dfOrders=CSV.read(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing}),dateformat=dateFrmt)
     #showall(dfOrders)
 
-    #remove trials and invalid ROUND_ID
+    #remove trials , invalid ROUND_ID
     dfOrders=@from ord in dfOrders begin
         @where (ord.Customer_Name != "AM/NS Calvert Quality Internal Trials") && (!(ord.Round_ID in("NOK_Width" ,"NOK_MES Unavailable","NOK_No Location","NOK_River Terminal")))
         @select ord
@@ -62,7 +70,9 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     end
 
     dfOrders[:FlowList] = map( (x) -> toList(x),dfOrders[:Flows])
-    dfOrders[:RoundList]= map( (x) -> ismissing(x)?"": toList(replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
+    dfOrders[:RoundList]= map( (x) -> toList(ismissing(x)?"???": replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
+    
+    dfOrders[:RoundList]= map( (x) -> ("IF" in(x))?push!(x,"IF_Exposed"):x ,dfOrders[:RoundList])
 
     if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
