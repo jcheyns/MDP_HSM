@@ -136,17 +136,17 @@ maxOcc=@from rds in aMDPModel.dfRounds begin
 end
 
 MinVolumePerRound=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.MinVolumePerRound)
+    @select get(rds.RoundName)=>get(rds.MinVolPerRound)
     @collect Dict
 end
 
 MaxVolumePerRound=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.MaxVolumePerRound)
+    @select get(rds.RoundName)=>get(rds.MaxVolPerRound)
     @collect Dict
 end
 
 OuterBayVolumePerRound=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.OuterbayVolume)
+    @select get(rds.RoundName)=>get(rds.OuterbayVol)
     @collect Dict
 end
 
@@ -175,23 +175,25 @@ for i=1:nOrders
         end
         @constraint(m,VolOuterBayInRd[i,r]==(aMDPModel.dfOrders[i,:Yard_Location]  =="OuterBay" ? VolInRd[i,r] : 0))
     end
-    for f in aMDPModel.dfOrders[i,:FlowList]
-        if !haskey(minFlow,f)
-            @constraint(m,sum(VolInRd[i,r] for r in aMDPModel.dfOrders[i,:RoundList]) ==0 )
-        end
-    end
+    #for f in aMDPModel.dfOrders[i,:FlowList]
+    #    if !haskey(minFlow,f)
+    #        @constraint(m,sum(VolInRd[i,r] for r in aMDPModel.dfOrders[i,:RoundList]) ==0 )
+    #    end
+    #end
 end
 
-if haskey(aMDPModel.params,"OuterbayVolume")
-    @constraint(m,sum(VolOuterBayInRd[i,r] for i=1:nOrders, r in (aMDPModel.dfOrders[i,:RoundList]) ) <= parse(Float64, aMDPModel.params["OuterbayVolume"]))
+if haskey(aMDPModel.params,"OuterbayVol")
+    @constraint(m,sum(VolOuterBayInRd[i,r] for i=1:nOrders, r in (aMDPModel.dfOrders[i,:RoundList]) ) <= parse(Float64, aMDPModel.params["OuterbayVol"]))
 end
 
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) >= parse(Int32, aMDPModel.params["Min_Rounds"]))
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) <= parse(Int32, aMDPModel.params["Max_Rounds"]))
+@variable(m,RdVol[r in aMDPModel.dfRounds[:RoundName]])
 
 for r in aMDPModel.dfRounds[:RoundName]
-    @constraint(m,RdShortage[r] >= MinVolumePerRound[r]*Rd[r] - sum(VolInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList]))
-    @constraint(m,RdExcess[r]>=sum(VolInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList])- Rd[r]*MaxVolumePerRound[r] )
+    @constraint(m,RdVol[r]==sum(VolInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList]))
+    @constraint(m,RdShortage[r] >= MinVolumePerRound[r]*Rd[r] - RdVol[r])
+    @constraint(m,RdExcess[r]>=RdVol[r] - Rd[r]*MaxVolumePerRound[r] )
     if RoundLimitsAsConstraint
         @constraint(m,RdShortage[r]==0)
         @constraint(m,RdExcess[r]==0)
@@ -238,10 +240,8 @@ else
     @constraint(m,totalOuterbayCost==sum(VolOuterBayInRd[i,r])*aMDPModel.params["OuterbayCost"])
 end
 
-
-@objective(m,:Min,totalflowExcesscost+totalflowShortagecost+totalSelectionCost+totalOuterbayCost)
+@objective(m,:Min,totalflowExcesscost + totalflowShortagecost + totalSelectionCost + totalOuterbayCost)
 write(aMDPModel.logFile,"Solving Model\r\n")
-
 
 modelPrint=open(joinpath(aMDPModel.workFolder,"model.txt"),"w")
 
@@ -253,6 +253,10 @@ result=open(joinpath(aMDPModel.workFolder,"Result.csv"),"w")
 
 if ModelStatus==:Optimal
     println(result,"Cost,",getobjectivevalue(m),"\r")
+    println(result,"FlowExcessCost,",getvalue(totalflowExcesscost),"\r")
+    println(result,"FlowShortageCost,",getvalue(totalflowShortagecost),"\r")
+    println(result,"SelectionCost,",getvalue(totalSelectionCost),"\r")
+
     close(result)
 
     flowResult=open(joinpath(aMDPModel.workFolder,"HSMFlows_Result.csv"),"w")
@@ -268,7 +272,8 @@ if ModelStatus==:Optimal
     roundResult=open(joinpath(aMDPModel.workFolder,"HSMRounds_Result.csv"),"w")
     for r in aMDPModel.dfRounds[:RoundName]
         val=getvalue(Rd[r])
-        write(roundResult,"$r,$val\r\n")
+        vol=getvalue(RdVol[r])
+        write(roundResult,"$r,$val,$vol\r\n")
         #println(r,",",getvalue(Rd[r]))
     end
     close(roundResult)
