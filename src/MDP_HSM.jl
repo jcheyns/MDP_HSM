@@ -40,7 +40,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     write(logFile,"Reading $path $flowFile\r\n")
     dfFlows=CSV2DF(joinpath(path,flowFile))
 
-    if(:Active in names(dfFlows))
+    if(false && :Active in names(dfFlows))
         dfFlows=@from fl in dfFlows begin
         @where fl.Active==1
         @select fl
@@ -156,7 +156,7 @@ minFlow=@from fl in aMDPModel.dfFlows begin
 end
 
 maxFlow=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowMax)
+    @select get(fl.FlowName)=>get(fl.FlowMax,0)
     @collect Dict
 end
 
@@ -214,12 +214,12 @@ end
 @variable(m,totalflowExcesscost)
 
 FlowShortageCostFactor=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowShortageCostFactor)
+    @select get(fl.FlowName)=>get(fl.FlowShortageCostFactor*fl.Active)
     @collect Dict
 end
 
 FlowExcessCostFactor=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowExcessCostFactor)
+    @select get(fl.FlowName)=>get(fl.FlowExcessCostFactor*fl.Active)
     @collect Dict
 end
 
