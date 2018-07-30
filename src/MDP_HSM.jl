@@ -202,7 +202,7 @@ for r in aMDPModel.dfRounds[:RoundName]
     @constraint(m,sum(VolOuterBayInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList])<=OuterBayVolumePerRound[r])
 end
 
-@constraint(m,totalVol==sum(RdVol[r] for r in (aMDPModel.dfOrders[i,:RoundList]) ))
+@constraint(m,totalVol==sum(RdVol[r] for r in (aMDPModel.dfRounds[:RoundName]) ))
 if haskey(aMDPModel.params,"MinVolume")
     @constraint(m,totalVol >= parse(Float64, aMDPModel.params["MinVolume"]))
 end
