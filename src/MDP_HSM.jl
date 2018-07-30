@@ -189,6 +189,7 @@ end
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) >= parse(Int32, aMDPModel.params["Min_Rounds"]))
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) <= parse(Int32, aMDPModel.params["Max_Rounds"]))
 @variable(m,RdVol[r in aMDPModel.dfRounds[:RoundName]])
+@variable(m,totalVol)
 
 for r in aMDPModel.dfRounds[:RoundName]
     @constraint(m,RdVol[r]==sum(VolInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList]))
@@ -200,6 +201,15 @@ for r in aMDPModel.dfRounds[:RoundName]
     end
     @constraint(m,sum(VolOuterBayInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList])<=OuterBayVolumePerRound[r])
 end
+
+@constraint(m,totalVol==sum(RdVol[r] for r in (aMDPModel.dfOrders[i,:RoundList]) ))
+if haskey(aMDPModel.params,"MinVolume")
+    @constraint(m,totalVol >= parse(Float64, aMDPModel.params["MinVolume"]))
+end
+if haskey(aMDPModel.params,"MaxVolume")
+    @constraint(m,totalVol <= parse(Float64, aMDPModel.params["MaxVolume"]))
+end
+
 
 for f in aMDPModel.dfFlows[:FlowName]
     #@constraint(m,Flow[f]==sum(VolInRd[i,r]*in(f,aMDPModel.dfOrders[i,:FlowList]) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
