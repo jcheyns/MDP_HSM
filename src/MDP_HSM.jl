@@ -5,6 +5,9 @@ using JuMP
 using Cbc
 using Query
 using CSV
+if VERSION >v"0.7.0-"
+    using Dates
+end
 
 export MDP_HSM_Model,RunModel
 
