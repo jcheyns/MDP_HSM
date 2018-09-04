@@ -3,4 +3,4 @@ DataFrames 0.11.0
 CSV 0.2.5
 Cbc 0.3.2
 JuMP 0.18.2
-Query 0.9.3
+Query 0.10.0
