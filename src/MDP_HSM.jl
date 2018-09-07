@@ -73,7 +73,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     end
 
     dfOrders[:FlowList] = map( (x) -> toList(x),dfOrders[:Flows])
-    dfOrders[:RoundList]= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH","IF")),dfOrders[:Round_Type])
+    dfOrders[:RoundList]= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH" => "IF")),dfOrders[:Round_Type])
     dfOrders[:RoundList]= map( (x) -> ("IF" in(x)) ? push!(x,"IF_Exposed") : x ,dfOrders[:RoundList])
 
     if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
