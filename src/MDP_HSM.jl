@@ -217,7 +217,7 @@ end
 for f in aMDPModel.dfFlows[:FlowName]
     #@constraint(m,Flow[f]==sum(VolInRd[i,r]*in(f,aMDPModel.dfOrders[i,:FlowList]) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
     @constraint(m,Flow[f]==sum(VolInRd[i,r]* orderInFlow(aMDPModel.dfOrders[i,:FlowList],f) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
-    @constraint(m,FlowShortage[f]>=minFlow[f]-Flow[f])
+    @constraint(m,FlowShortage[f]>=parse(Float64,minFlow[f]-)Flow[f])
     @constraint(m,FlowExcess[f]>=Flow[f]-maxFlow[f])
 end
 
