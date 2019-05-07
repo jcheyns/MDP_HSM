@@ -129,37 +129,37 @@ nOrders=size(aMDPModel.dfOrders,1)
 @variable(m,FlowExcess[f in aMDPModel.dfFlows[:FlowName]]>=0)
 
 minOcc=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.MinOccurence,0)
+    @select rds.RoundName=>get(rds.MinOccurence,0)
     @collect Dict
 end
 
 maxOcc=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.MaxOccurence)
+    @select rds.RoundName=>rds.MaxOccurence
     @collect Dict
 end
 
 MinVolumePerRound=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.MinVolPerRound)
+    @select rds.RoundName=>rds.MinVolPerRound
     @collect Dict
 end
 
 MaxVolumePerRound=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.MaxVolPerRound)
+    @select rds.RoundName=>rds.MaxVolPerRound
     @collect Dict
 end
 
 OuterBayVolumePerRound=@from rds in aMDPModel.dfRounds begin
-    @select get(rds.RoundName)=>get(rds.OuterbayVol)
+    @select rds.RoundName=>rds.OuterbayVol
     @collect Dict
 end
 
 minFlow=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowMin,0)
+    @select fl.FlowName=>get(fl.FlowMin,0)
     @collect Dict
 end
 
 maxFlow=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowMax,0)
+    @select fl.FlowName=>get(fl.FlowMax,0)
     @collect Dict
 end
 
@@ -227,12 +227,12 @@ end
 @variable(m,totalflowExcesscost)
 
 FlowShortageCostFactor=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowShortageCostFactor*fl.Active)
+    @select fl.FlowName=>get(fl.FlowShortageCostFactor*fl.Active)
     @collect Dict
 end
 
 FlowExcessCostFactor=@from fl in aMDPModel.dfFlows begin
-    @select get(fl.FlowName)=>get(fl.FlowExcessCostFactor*fl.Active)
+    @select fl.FlowName=>get(fl.FlowExcessCostFactor*fl.Active)
     @collect Dict
 end
 
