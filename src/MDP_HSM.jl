@@ -26,7 +26,7 @@ CSV2DF(path::AbstractString)= CSV.read(path)
 #would be great to precomplie this one ...
 function df2ParamDict(dfParams::DataFrame)
     params=@from rds in dfParams begin
-        @select get(rds.Key)=>get(rds.Value)
+        @select rds.Key=>rds.Value
         @collect Dict
     end
     return params::Dict{String,String}
