@@ -134,7 +134,7 @@ minOcc=@from rds in aMDPModel.dfRounds begin
 end
 
 maxOcc=@from rds in aMDPModel.dfRounds begin
-    @select rds.RoundName=>rds.MaxOccurence
+    @select rds.RoundName=> (isna(rds.MaxOccurence) ? 0 : rds.MaxOccurence)
     @collect Dict
 end
 
