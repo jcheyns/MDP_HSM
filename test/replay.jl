@@ -3,7 +3,7 @@ using MDP_HSM
 #global_logger(SimpleLogger(open(joinpath(path, "Logging.txt"),"w")))
 
 if size(ARGS,1)==0
-    myModel=MDP_HSM.MDP_HSM_Model("C:/tmp/20180724163529")
+    myModel=MDP_HSM.MDP_HSM_Model("C:/tmp/20180801085842")
 elseif size(ARGS,1)==1
     arg=ARGS[1]
     #error(arg)
