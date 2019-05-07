@@ -163,7 +163,7 @@ maxFlow=@from fl in aMDPModel.dfFlows begin
     @collect Dict
 end
 
-@variable(m, Rd[r in aMDPModel.dfRounds[:RoundName]] <=maxOcc[r], lowerbound=minOcc[r], Int)
+@variable(m, Rd[r in aMDPModel.dfRounds[:RoundName]] <=maxOcc[r], lower_bound=minOcc[r], Int)
 
 @variable(m,RdShortage[r in aMDPModel.dfRounds[:RoundName]]>=0)
 @variable(m,RdExcess[r in aMDPModel.dfRounds[:RoundName]]>=0)
