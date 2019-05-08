@@ -129,6 +129,7 @@ nOrders=size(aMDPModel.dfOrders,1)
 @variable(m,FlowShortage[f in aMDPModel.dfFlows[:FlowName]]>=0)
 @variable(m,FlowExcess[f in aMDPModel.dfFlows[:FlowName]]>=0)
 
+showall(aMDPModel.dfRounds)
 minOcc=@from rds in aMDPModel.dfRounds begin
     @select rds.RoundName=>  (isna(rds.MinOccurence) ? 0 : rds.MinOccurence)
     @collect Dict
