@@ -129,7 +129,7 @@ nOrders=size(aMDPModel.dfOrders,1)
 @variable(m,FlowShortage[f in aMDPModel.dfFlows[:FlowName]]>=0)
 @variable(m,FlowExcess[f in aMDPModel.dfFlows[:FlowName]]>=0)
 
-#showall(aMDPModel.dfRounds)
+
 minOcc=@from rds in aMDPModel.dfRounds begin
     @select rds.RoundName=>  rds.MinOccurence
     @collect Dict
@@ -155,6 +155,7 @@ OuterBayVolumePerRound=@from rds in aMDPModel.dfRounds begin
     @collect Dict
 end
 
+showall(aMDPModel.dfFlows)
 minFlow=@from fl in aMDPModel.dfFlows begin
     @select fl.FlowName=>get(fl.FlowMin, 0)
     @collect Dict
