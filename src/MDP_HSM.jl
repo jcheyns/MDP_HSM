@@ -156,7 +156,7 @@ OuterBayVolumePerRound=@from rds in aMDPModel.dfRounds begin
 end
 
 minFlow=@from fl in aMDPModel.dfFlows begin
-    @select fl.FlowName=>fl.FlowMin
+    @select fl.FlowName=>get(fl.FlowMin, 0)
     @collect Dict
 end
 
