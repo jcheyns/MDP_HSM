@@ -257,7 +257,7 @@ else
     @constraint(m,totalOuterbayCost==sum(VolOuterBayInRd[i,r])*aMDPModel.params["OuterbayCost"])
 end
 
-@objective(m,:Min,totalflowExcesscost + totalflowShortagecost + totalSelectionCost + totalOuterbayCost)
+@objective(m,Min,totalflowExcesscost + totalflowShortagecost + totalSelectionCost + totalOuterbayCost)
 write(aMDPModel.logFile,"Solving Model\r\n")
 
 modelPrint=open(joinpath(aMDPModel.workFolder,"model.txt"),"w")
