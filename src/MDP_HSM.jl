@@ -264,7 +264,7 @@ modelPrint=open(joinpath(aMDPModel.workFolder,"model.txt"),"w")
 
 println(modelPrint,m)
 optimize!(m)
-stat = terminiation_status(m)
+stat = termination_status(m)
 write(aMDPModel.logFile,"Solved Model: $stat\r\n")
 result=open(joinpath(aMDPModel.workFolder,"Result.csv"),"w")
     println(result,"Status,$ModelStatus\r")
