@@ -269,7 +269,7 @@ write(aMDPModel.logFile,"Solved Model: $stat\r\n")
 result=open(joinpath(aMDPModel.workFolder,"Result.csv"),"w")
     println(result,"Status,$stat\r")
 
-if ModelStatus==:Optimal
+if stat==:Optimal
     println(result,"Cost,",getobjectivevalue(m),"\r")
     println(result,"FlowExcessCost,",getvalue(totalflowExcesscost),"\r")
     println(result,"FlowShortageCost,",getvalue(totalflowShortagecost),"\r")
@@ -314,6 +314,6 @@ end
 println(result,"Cost,",999999999999999999999,"\r")
 close(result)
 
-return ModelStatus
+return stat
 end
 end
