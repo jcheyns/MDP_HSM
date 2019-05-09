@@ -231,12 +231,12 @@ end
 @variable(m,totalflowExcesscost)
 
 FlowShortageCostFactor=@from fl in aMDPModel.dfFlows begin
-    @select fl.FlowName=>get(fl.FlowShortageCostFactor*fl.Active)
+    @select fl.FlowName=>fl.FlowShortageCostFactor*fl.Active
     @collect Dict
 end
 
 FlowExcessCostFactor=@from fl in aMDPModel.dfFlows begin
-    @select fl.FlowName=>get(fl.FlowExcessCostFactor*fl.Active)
+    @select fl.FlowName=>fl.FlowExcessCostFactor*fl.Active
     @collect Dict
 end
 
