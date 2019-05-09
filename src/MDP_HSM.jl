@@ -267,7 +267,7 @@ optimize!(m)
 stat = termination_status(m)
 write(aMDPModel.logFile,"Solved Model: $stat\r\n")
 result=open(joinpath(aMDPModel.workFolder,"Result.csv"),"w")
-    println(result,"Status,$ModelStatus\r")
+    println(result,"Status,$stat\r")
 
 if ModelStatus==:Optimal
     println(result,"Cost,",getobjectivevalue(m),"\r")
