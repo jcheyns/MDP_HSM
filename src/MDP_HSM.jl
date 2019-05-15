@@ -270,29 +270,29 @@ result=open(joinpath(aMDPModel.workFolder,"Result.csv"),"w")
     println(result,"Status,$stat\r")
 
 if stat==MOI.OPTIMAL
-    println(result,"Cost,",getobjectivevalue(m),"\r")
-    println(result,"FlowExcessCost,",getvalue(totalflowExcesscost),"\r")
-    println(result,"FlowShortageCost,",getvalue(totalflowShortagecost),"\r")
-    println(result,"SelectionCost,",getvalue(totalSelectionCost),"\r")
+    println(result,"Cost,",objective_value(m),"\r")
+    println(result,"FlowExcessCost,",value(totalflowExcesscost),"\r")
+    println(result,"FlowShortageCost,",value(totalflowShortagecost),"\r")
+    println(result,"SelectionCost,",value(totalSelectionCost),"\r")
 
     close(result)
 
     flowResult=open(joinpath(aMDPModel.workFolder,"HSMFlows_Result.csv"),"w")
     #write Flows
     for f in aMDPModel.dfFlows[:FlowName]
-        val =getvalue(Flow[f])
-        shortage=getvalue(FlowShortage[f])
-        excess=getvalue(FlowExcess[f])
+        val =value(Flow[f])
+        shortage=value(FlowShortage[f])
+        excess=value(FlowExcess[f])
         write(flowResult,"$f,$val,$shortage,$excess\r\n")
     end
     close(flowResult)
     #write rounds
     roundResult=open(joinpath(aMDPModel.workFolder,"HSMRounds_Result.csv"),"w")
     for r in aMDPModel.dfRounds[:RoundName]
-        val=getvalue(Rd[r])
-        vol=getvalue(RdVol[r])
+        val=value(Rd[r])
+        vol=value(RdVol[r])
         write(roundResult,"$r,$val,$vol\r\n")
-        #println(r,",",getvalue(Rd[r]))
+        #println(r,",",value(Rd[r]))
     end
     close(roundResult)
     #write Orders
@@ -300,9 +300,9 @@ if stat==MOI.OPTIMAL
     for i=1:nOrders
         vol=0
         for r in aMDPModel.dfOrders[i,:RoundList]
-            if (getvalue(VolInRd[i,r])>0)
+            if (value(VolInRd[i,r])>0)
                #println("\t$i,$r," , aMDPModel.dfOrders[i,:Works_Order_No] , ",$vol")
-                vol += getvalue(VolInRd[i,r])
+                vol += value(VolInRd[i,r])
             end
         end
         if vol>0
