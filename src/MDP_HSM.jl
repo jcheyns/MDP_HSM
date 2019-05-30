@@ -198,7 +198,9 @@ end
 
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) >= parse(Int32, aMDPModel.params["Min_Rounds"]))
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) <= parse(Int32, aMDPModel.params["Max_Rounds"]))
-@constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders))
+
+
+@constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders if r in dfOrders[i,:RoundList]))
 @constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfOrders[i,:RoundList]) ,w=1:20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r])
 
 
