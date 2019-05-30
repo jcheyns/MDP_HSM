@@ -79,7 +79,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
 
     if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
-        dfOrders[:WidthGroup] =map( (x) -> floor(Int,x/100,dfOrders[:Aim_Width]))
+        dfOrders[:WidthGroup] =map( (x) -> floor(Int,x/100),dfOrders[:Aim_Width])
     end
 
     #println(eltypes(dfOrders))
