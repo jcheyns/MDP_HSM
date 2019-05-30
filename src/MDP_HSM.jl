@@ -125,7 +125,7 @@ nOrders=size(aMDPModel.dfOrders,1)
 @variable(m,VolInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 @variable(m,VolOuterBayInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 
-@variable(m,RdPerWidthGroupLength[r in aMDPModel.dfOrders[i,:RoundList],w=1..20]>=0)
+@variable(m,RdPerWidthGroupLength[r in aMDPModel.dfRounds[:RoundName],w=1..20]>=0)
 
 @variable(m,Flow[f in aMDPModel.dfFlows[:FlowName]]>=0)
 
