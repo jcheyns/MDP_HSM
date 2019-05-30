@@ -203,6 +203,7 @@ end
 @constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders if aMDPModel.dfOrders[i,:WidthGroup]==w && r in aMDPModel.dfOrders[i,:RoundList]))
 
 if haskey(aMDPModel.params,"WidthGroupLimit") && aMDPModel.params["WidthGroupLimit"]!=0
+    write(aMDPModel.logFile,"Adding Width Group limit constraint.\n")
     @constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r])
 end
 
@@ -285,6 +286,13 @@ if stat==MOI.OPTIMAL
     println(result,"FlowExcessCost,",value(totalflowExcesscost),"\r")
     println(result,"FlowShortageCost,",value(totalflowShortagecost),"\r")
     println(result,"SelectionCost,",value(totalSelectionCost),"\r")
+    for r in aMDPModel.dfRounds[:RoundName]
+        write(result,"$r\r\n")
+        for w = 1:20
+            val=value(RdPerWidthGroupLength[r,w])
+            write(result," $w,$val\r\n")
+        end
+    end
 
     close(result)
 
