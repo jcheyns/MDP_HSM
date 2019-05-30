@@ -81,7 +81,8 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
         dfOrders[:WidthGroup] =map( (x) -> floor(Int,x/100),dfOrders[:Aim_Width])
     end
-
+    #show(aMDPModel.dfOrders, allrows=true,allcols=true)
+    #show(aMDPModel.dfOrders, allcols=true)
     #println(eltypes(dfOrders))
     #showall(dfOrders)
 
@@ -287,10 +288,14 @@ if stat==MOI.OPTIMAL
     println(result,"FlowShortageCost,",value(totalflowShortagecost),"\r")
     println(result,"SelectionCost,",value(totalSelectionCost),"\r")
     for r in aMDPModel.dfRounds[:RoundName]
-        write(result,"$r\r\n")
-        for w = 1:20
-            val=value(RdPerWidthGroupLength[r,w])
-            write(result," $w,$val\r\n")
+        if value(Rd[r])>0
+            write(result,"$r\r\n")
+            for w = 1:20
+                val=value(RdPerWidthGroupLength[r,w])
+                if val>0
+                    write(result," $w,$val\r\n")
+                end
+            end
         end
     end
 
