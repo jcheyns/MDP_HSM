@@ -202,7 +202,7 @@ end
 
 @constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList]))
 
-if haskey(aMDPModel.params,"WidthGroupLimit") && aMDPModel.params["WidthGroupLimit"]<>0
+if haskey(aMDPModel.params,"WidthGroupLimit") && aMDPModel.params["WidthGroupLimit"!=0
     @constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r])
 end
 
