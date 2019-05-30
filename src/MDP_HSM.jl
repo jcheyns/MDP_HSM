@@ -79,6 +79,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
 
     if (!(:Volume in names(dfOrders)) && (:Slab_Weight in names(dfOrders)))
         dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
+        dfOrders[:WidthGroup] =map( (x) -> floor(Int,x/100,dfOrders[:Aim_Width]))
     end
 
     #println(eltypes(dfOrders))
@@ -123,6 +124,8 @@ nOrders=size(aMDPModel.dfOrders,1)
 
 @variable(m,VolInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 @variable(m,VolOuterBayInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
+
+@variable(m,RdPerWidthGroupLength[r in aMDPModel.dfOrders[i,:RoundList],w=1..20]>=0)
 
 @variable(m,Flow[f in aMDPModel.dfFlows[:FlowName]]>=0)
 
@@ -195,6 +198,10 @@ end
 
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) >= parse(Int32, aMDPModel.params["Min_Rounds"]))
 @constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) <= parse(Int32, aMDPModel.params["Max_Rounds"]))
+@constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfOrders[i,:RoundList]) ,w=1..20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders))
+@constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfOrders[i,:RoundList]) ,w=1..20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r]))
+
+
 @variable(m,RdVol[r in aMDPModel.dfRounds[:RoundName]])
 @variable(m,totalVol)
 
