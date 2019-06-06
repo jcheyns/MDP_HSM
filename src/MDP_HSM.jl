@@ -35,7 +35,7 @@ end
 toList(x)=split(x,"#")
 
 #function MDP_HSM_Model(path::AbstractString; orderFile::AbstractString="HSMOrders.csv", roundFile::AbstractString="HSMRounds.csv",flowFile::AbstractString="HSMFlows.csv",paramFile::AbstractString="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
-function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFile::String="HSMRounds.csv",flowFile::String="HSMFlows.csv",paramFile::String="HSMParams.csv",dateFrmt::DateFormat = DateFormat("mm/dd/yyyy"))
+function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFile::String="HSMRounds.csv",flowFile::String="HSMFlows.csv",paramFile::String="HSMParams.csv",dateFrmt::DateFormat = DateFormat("m/d/y"))
     logFile=open(joinpath(path, "Logging.txt"),"w")
 
     write(logFile, "Reading $path $roundFile\r\n")
