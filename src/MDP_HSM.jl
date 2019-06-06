@@ -58,7 +58,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     params=df2ParamDict(dfParams)
 
     write(logFile, "Reading $path $orderFile\r\n")
-    dfOrders=CSV.read(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing}),dateformat=dateFrmt)
+    dfOrders=CSV.read(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing},"HSM_PSD"=>Union{Date,Missing}"SO_Due_Date"=>Union{Date,Missing}),dateformat=dateFrmt)
     #showall(dfOrders)
 
     #remove trials , invalid ROUND_ID
