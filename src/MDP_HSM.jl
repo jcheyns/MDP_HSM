@@ -285,17 +285,17 @@ if stat==MOI.OPTIMAL
     println(result,"FlowExcessCost,",value(totalflowExcesscost),"\r")
     println(result,"FlowShortageCost,",value(totalflowShortagecost),"\r")
     println(result,"SelectionCost,",value(totalSelectionCost),"\r")
-    for r in aMDPModel.dfRounds[:RoundName]
-        if value(Rd[r])>0
-            write(result,"$r\r\n")
-            for w = 1:20
-                val=value(RdPerWidthGroupLength[r,w])
-                if val>0
-                    write(result," $w,$val\r\n")
-                end
-            end
-        end
-    end
+    #for r in aMDPModel.dfRounds[:RoundName]
+    #    if value(Rd[r])>0
+    #        write(result,"$r\r\n")
+            #for w = 1:20
+            #    val=value(RdPerWidthGroupLength[r,w])
+            #    if val>0
+            #        write(result," $w,$val\r\n")
+            #    end
+     #       end
+     #   end
+    #end
 
     close(result)
 
