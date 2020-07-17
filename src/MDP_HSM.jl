@@ -72,8 +72,8 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     end
 
     dfOrders.FlowList = map( (x) -> toList(x),dfOrders.Flows)
-    dfOrders[:RoundList]= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH" => "IF")),dfOrders[:Round_Type])
-    dfOrders[:RoundList]= map( (x) -> ("IF" in(x)) ? push!(x,"IF_Exposed") : x ,dfOrders[:RoundList])
+    dfOrders.RoundList= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH" => "IF")),dfOrders.Round_Type)
+    dfOrders.RoundList= map( (x) -> ("IF" in(x)) ? push!(x,"IF_Exposed") : x ,dfOrders.RoundList)
 
     if (!(:Volume in propertynames(dfOrders)) && (:Slab_Weight in propertynames(dfOrders)))
         dfOrders.Volume = map( (x) -> x/1000,dfOrders.Slab_Weight)
@@ -126,7 +126,7 @@ nOrders=size(aMDPModel.dfOrders,1)
 
 @variable(m,RdPerWidthGroupLength[r in aMDPModel.dfRounds.RoundName,w=1:20]>=0)
 
-@variable(m,Flow[f in aMDPModel.dfFlows[:FlowName]]>=0)
+@variable(m,Flow[f in aMDPModel.dfFlows.FlowName]>=0)
 
 @variable(m,FlowShortage[f in aMDPModel.dfFlows.FlowName]>=0)
 @variable(m,FlowExcess[f in aMDPModel.dfFlows.FlowName]>=0)
@@ -203,7 +203,7 @@ end
 
 if haskey(aMDPModel.params,"WidthGroupLimit") && aMDPModel.params["WidthGroupLimit"]!=0
     write(aMDPModel.logFile,"Adding Width Group limit constraint.\n")
-    @constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r])
+    @constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfRounds.RoundName) ,w=1:20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r])
 end
 
 @variable(m,RdVol[r in aMDPModel.dfRounds.RoundName])
