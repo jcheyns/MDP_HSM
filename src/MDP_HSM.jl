@@ -20,7 +20,7 @@ struct MDP_HSM_Model
     params::Dict{String,String}
 end
 
-CSV2DF(path::AbstractString)= DataFrame!(CSV.read(path))
+CSV2DF(path::AbstractString)= DataFrame!(CSV.File(path))
 
 #would be great to precomplie this one ...
 function df2ParamDict(dfParams::DataFrame)
