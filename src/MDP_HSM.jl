@@ -66,7 +66,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
         @collect DataFrame
     end
 
-    if (!(Flows in propertynames(dfOrders)) && (:Flow in propertynames(dfOrders)))
+    if (!(:Flows in propertynames(dfOrders)) && (:Flow in propertynames(dfOrders)))
         write(logFile,"Using <Flow> for <Flows>\r\n")
         rename!(dfOrders,(:Flow=>:Flows))
     end
