@@ -118,18 +118,18 @@ end
 
 function RunModel(aMDPModel::MDP_HSM_Model;RoundLimitsAsConstraint::Bool=true)
 #write(aMDPModel.logFile,"Building Model\r\n")
-m=Model(with_optimizer(Cbc.Optimizer ,logLevel=1))
+m=Model(optimizer_with_attributes(Cbc.Optimizer, "logLevel" => 1))
 nOrders=size(aMDPModel.dfOrders,1)
 
 @variable(m,VolInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 @variable(m,VolOuterBayInRd[i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]]>=0)
 
-@variable(m,RdPerWidthGroupLength[r in aMDPModel.dfRounds[:RoundName],w=1:20]>=0)
+@variable(m,RdPerWidthGroupLength[r in aMDPModel.dfRounds.RoundName,w=1:20]>=0)
 
 @variable(m,Flow[f in aMDPModel.dfFlows[:FlowName]]>=0)
 
-@variable(m,FlowShortage[f in aMDPModel.dfFlows[:FlowName]]>=0)
-@variable(m,FlowExcess[f in aMDPModel.dfFlows[:FlowName]]>=0)
+@variable(m,FlowShortage[f in aMDPModel.dfFlows.FlowName]>=0)
+@variable(m,FlowExcess[f in aMDPModel.dfFlows.FlowName]>=0)
 
 
 minOcc=@from rds in aMDPModel.dfRounds begin
@@ -171,8 +171,8 @@ end
 
 @variable(m, Rd[r in aMDPModel.dfRounds[:RoundName]] <=maxOcc[r], lower_bound=minOcc[r], Int)
 
-@variable(m,RdShortage[r in aMDPModel.dfRounds[:RoundName]]>=0)
-@variable(m,RdExcess[r in aMDPModel.dfRounds[:RoundName]]>=0)
+@variable(m,RdShortage[r in aMDPModel.dfRounds.RoundName]>=0)
+@variable(m,RdExcess[r in aMDPModel.dfRounds.RoundName]>=0)
 
 for i=1:nOrders
     @constraint(m,sum(VolInRd[i,r] for r in aMDPModel.dfOrders[i,:RoundList]) <= aMDPModel.dfOrders[i,:Volume])
@@ -195,21 +195,21 @@ if haskey(aMDPModel.params,"OuterbayVol")
     @constraint(m,sum(VolOuterBayInRd[i,r] for i=1:nOrders, r in (aMDPModel.dfOrders[i,:RoundList]) ) <= parse(Float64, aMDPModel.params["OuterbayVol"]))
 end
 
-@constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) >= parse(Int32, aMDPModel.params["Min_Rounds"]))
-@constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds[:RoundName]) <= parse(Int32, aMDPModel.params["Max_Rounds"]))
+@constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds.RoundName) >= parse(Int32, aMDPModel.params["Min_Rounds"]))
+@constraint(m, sum(Rd[r] for r in aMDPModel.dfRounds.RoundName) <= parse(Int32, aMDPModel.params["Max_Rounds"]))
 
 
-@constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders if aMDPModel.dfOrders[i,:WidthGroup]==w && r in aMDPModel.dfOrders[i,:RoundList]))
+@constraint(m, conRdPerWidthGroupLength[r in (aMDPModel.dfRounds.RoundName) ,w=1:20] ,RdPerWidthGroupLength[r,w] == sum(VolInRd[i,r]/aMDPModel.dfOrders[i,:Volume]*aMDPModel.dfOrders[i,:Coil_Length] for i=1:nOrders if aMDPModel.dfOrders[i,:WidthGroup]==w && r in aMDPModel.dfOrders[i,:RoundList]))
 
 if haskey(aMDPModel.params,"WidthGroupLimit") && aMDPModel.params["WidthGroupLimit"]!=0
     write(aMDPModel.logFile,"Adding Width Group limit constraint.\n")
     @constraint(m, conRdPerWidthGroupLengthLimit[r in (aMDPModel.dfRounds[:RoundName]) ,w=1:20] ,RdPerWidthGroupLength[r,w] <=55*Rd[r])
 end
 
-@variable(m,RdVol[r in aMDPModel.dfRounds[:RoundName]])
+@variable(m,RdVol[r in aMDPModel.dfRounds.RoundName])
 @variable(m,totalVol)
 
-for r in aMDPModel.dfRounds[:RoundName]
+for r in aMDPModel.dfRounds.RoundName
     @constraint(m,RdVol[r]==sum(VolInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList]))
     @constraint(m,RdShortage[r] >= MinVolumePerRound[r]*Rd[r] - RdVol[r])
     @constraint(m,RdExcess[r]>=RdVol[r] - Rd[r]*MaxVolumePerRound[r] )
@@ -220,7 +220,7 @@ for r in aMDPModel.dfRounds[:RoundName]
     @constraint(m,sum(VolOuterBayInRd[i,r] for i=1:nOrders if r in aMDPModel.dfOrders[i,:RoundList])<=OuterBayVolumePerRound[r])
 end
 
-@constraint(m,totalVol==sum(RdVol[r] for r in (aMDPModel.dfRounds[:RoundName]) ))
+@constraint(m,totalVol==sum(RdVol[r] for r in (aMDPModel.dfRounds.RoundName) ))
 if haskey(aMDPModel.params,"MinVolume")
     @constraint(m,totalVol >= parse(Float64, aMDPModel.params["MinVolume"]))
 end
@@ -236,8 +236,8 @@ for f in aMDPModel.dfFlows[:FlowName]
     @constraint(m,FlowExcess[f]>=Flow[f]-maxFlow[f])
 end
 
-@variable(m,flowShortagecost[f in aMDPModel.dfFlows[:FlowName]])
-@variable(m,flowExcesscost[f in aMDPModel.dfFlows[:FlowName]])
+@variable(m,flowShortagecost[f in aMDPModel.dfFlows.FlowName])
+@variable(m,flowExcesscost[f in aMDPModel.dfFlows.FlowName])
 @variable(m,totalflowShortagecost)
 @variable(m,totalflowExcesscost)
 
@@ -256,8 +256,8 @@ for f in aMDPModel.dfFlows[:FlowName]
     @constraint(m,flowExcesscost[f]==sum(FlowExcess[f]*FlowExcessCostFactor[f] ))
 end
 
-@constraint(m,totalflowShortagecost==sum(flowShortagecost[f] for f in aMDPModel.dfFlows[:FlowName]))
-@constraint(m,totalflowExcesscost==sum(flowExcesscost[f] for f in aMDPModel.dfFlows[:FlowName]))
+@constraint(m,totalflowShortagecost==sum(flowShortagecost[f] for f in aMDPModel.dfFlows.FlowName))
+@constraint(m,totalflowExcesscost==sum(flowExcesscost[f] for f in aMDPModel.dfFlows.FlowName))
 
 @variable(m,totalSelectionCost)
 @constraint(m,totalSelectionCost==sum(VolInRd[i,r]*aMDPModel.dfOrders[i,:SelectionCost] for i=1:nOrders,r in aMDPModel.dfOrders[i,:RoundList]))
