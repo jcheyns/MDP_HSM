@@ -301,7 +301,7 @@ if stat==MOI.OPTIMAL
 
     flowResult=open(joinpath(aMDPModel.workFolder,"HSMFlows_Result.csv"),"w")
     #write Flows
-    for f in aMDPModel.dfFlows[:FlowName]
+    for f in aMDPModel.dfFlows.FlowName
         val =value(Flow[f])
         shortage=value(FlowShortage[f])
         excess=value(FlowExcess[f])
@@ -310,7 +310,7 @@ if stat==MOI.OPTIMAL
     close(flowResult)
     #write rounds
     roundResult=open(joinpath(aMDPModel.workFolder,"HSMRounds_Result.csv"),"w")
-    for r in aMDPModel.dfRounds[:RoundName]
+    for r in aMDPModel.dfRounds.RoundName
         val=value(Rd[r])
         vol=value(RdVol[r])
         write(roundResult,"$r,$val,$vol\r\n")
