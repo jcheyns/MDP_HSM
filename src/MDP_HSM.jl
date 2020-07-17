@@ -71,13 +71,13 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
         rename!(dfOrders,(:Flow=>:Flows))
     end
 
-    dfOrders[:FlowList] = map( (x) -> toList(x),dfOrders[:Flows])
+    dfOrders.FlowList = map( (x) -> toList(x),dfOrders.Flows)
     dfOrders[:RoundList]= map( (x) -> toList(ismissing(x) ? "???" : replace(x,"IF_BH" => "IF")),dfOrders[:Round_Type])
     dfOrders[:RoundList]= map( (x) -> ("IF" in(x)) ? push!(x,"IF_Exposed") : x ,dfOrders[:RoundList])
 
     if (!(:Volume in propertynames(dfOrders)) && (:Slab_Weight in propertynames(dfOrders)))
-        dfOrders[:Volume] = map( (x) -> x/1000,dfOrders[:Slab_Weight])
-        dfOrders[:WidthGroup] =map( (x) -> floor(Int,x/100),dfOrders[:Aim_Width])
+        dfOrders.Volume = map( (x) -> x/1000,dfOrders.Slab_Weight)
+        dfOrders.WidthGroup =map( (x) -> floor(Int,x/100),dfOrders.Aim_Width)
     end
     #show(aMDPModel.dfOrders, allrows=true,allcols=true)
     #show(aMDPModel.dfOrders, allcols=true)
