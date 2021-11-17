@@ -56,7 +56,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
     params=df2ParamDict(dfParams)
 
     write(logFile, "Reading $path $orderFile\r\n")
-    dfOrders=DataFrame!(CSV.File(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing},"HSM_PSD"=>Union{Date,Missing},"SO_Due_Date"=>Union{Date,Missing},"Slab_Grade"=>Union{String,Missing}) ,dateformat=dateFrmt))
+    dfOrders=DataFrame(CSV.File(joinpath(path,orderFile);delim=";",types=Dict("Works_Order_No"=>Union{String,Missing},"Expedite_Level"=>Union{String,Missing},"Furnace_Group"=>Union{String,Missing},"Galv_Options"=>Union{String,Missing},"CULPST"=>Union{Date,Missing},"HSM_LPST"=>Union{Date,Missing},"HSM_PSD"=>Union{Date,Missing},"SO_Due_Date"=>Union{Date,Missing},"Slab_Grade"=>Union{String,Missing}) ,dateformat=dateFrmt))
     #showall(dfOrders)
 
     #remove trials , invalid ROUND_ID
@@ -80,7 +80,7 @@ function MDP_HSM_Model(path::String; orderFile::String="HSMOrders.csv", roundFil
         dfOrders.WidthGroup =map( (x) -> floor(Int,x/100),dfOrders.Aim_Width)
     end
     #show(aMDPModel.dfOrders, allrows=true,allcols=true)
-    #show(aMDPModel.dfOrders, allcols=true)
+   #show(aMDPModel.dfOrders, allcols=true)
     #println(eltypes(dfOrders))
     #showall(dfOrders)
 
@@ -110,7 +110,7 @@ for f in flowSum
     if in(f, orderFlow)
         #println(orderFlow, " in ", f)
         return 1
-    end
+   end
 end
 return 0
 end
@@ -169,7 +169,7 @@ maxFlow=@from fl in aMDPModel.dfFlows begin
     @collect Dict
 end
 
-@variable(m, Rd[r in aMDPModel.dfRounds[:RoundName]] <=maxOcc[r], lower_bound=minOcc[r], Int)
+@variable(m, Rd[r in aMDPModel.dfRounds.RoundName] <=maxOcc[r], lower_bound=minOcc[r], Int)
 
 @variable(m,RdShortage[r in aMDPModel.dfRounds.RoundName]>=0)
 @variable(m,RdExcess[r in aMDPModel.dfRounds.RoundName]>=0)
@@ -229,7 +229,7 @@ if haskey(aMDPModel.params,"MaxVolume")
 end
 
 
-for f in aMDPModel.dfFlows[:FlowName]
+for f in aMDPModel.dfFlows.FlowName
     #@constraint(m,Flow[f]==sum(VolInRd[i,r]*in(f,aMDPModel.dfOrders[i,:FlowList]) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
     @constraint(m,Flow[f]==sum(VolInRd[i,r]* orderInFlow(aMDPModel.dfOrders[i,:FlowList],f) for i=1:nOrders, r in aMDPModel.dfOrders[i,:RoundList]))
     @constraint(m,FlowShortage[f]>=minFlow[f]-Flow[f])
@@ -251,7 +251,7 @@ FlowExcessCostFactor=@from fl in aMDPModel.dfFlows begin
     @collect Dict
 end
 
-for f in aMDPModel.dfFlows[:FlowName]
+for f in aMDPModel.dfFlows.FlowName
     @constraint(m,flowShortagecost[f]==sum(FlowShortage[f]*FlowShortageCostFactor[f] ))
     @constraint(m,flowExcesscost[f]==sum(FlowExcess[f]*FlowExcessCostFactor[f] ))
 end
@@ -285,7 +285,7 @@ if stat==MOI.OPTIMAL
     println(result,"FlowExcessCost,",value(totalflowExcesscost),"\r")
     println(result,"FlowShortageCost,",value(totalflowShortagecost),"\r")
     println(result,"SelectionCost,",value(totalSelectionCost),"\r")
-    #for r in aMDPModel.dfRounds[:RoundName]
+    #for r in aMDPModel.dfRounds.RoundName
     #    if value(Rd[r])>0
     #        write(result,"$r\r\n")
             #for w = 1:20
